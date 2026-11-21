@@ -53,16 +53,10 @@ object PackageManagerServiceHook : BaseHook() {
             val doesSignatureMatchForPermissionsMethod =
                 packageManagerServiceClazz.declaredMethods.first { m -> m.name == "doesSignatureMatchForPermissions" }
             hookAfter(doesSignatureMatchForPermissionsMethod) { callback ->
-                if (Config.isBypassDigestEnabled() && Config.isUsePreviousSignaturesEnabled()) {
-                    if (callback.result == false) {
-                        val getPackageNameMethod =
-                            callback.args[1]!!.javaClass.declaredMethods.first { m -> m.name == "getPackageName" }
-                        val packageName =
-                            getPackageNameMethod.invoke(callback.args[1]) as String
-                        if (packageName == callback.args[0] as String) {
-                            callback.result = true
-                        }
-                    }
+                if (Config.isBypassDigestEnabled() && Config.isBypassSharedUserEnabled()) {
+                    // Signature-level permission checks must not block a package
+                    // joining a shared UID with a different signing certificate.
+                    callback.result = true
                 }
             }
         }
