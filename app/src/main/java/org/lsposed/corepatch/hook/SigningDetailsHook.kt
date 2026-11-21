@@ -19,30 +19,49 @@ object SigningDetailsHook : BaseHook() {
                 hostClassLoader.loadClass("android.content.pm.PackageParser\$SigningDetails")
             }
 
-        // When shared-user signature bypass is enabled, accept every capability,
-        // including PERMISSION (4) and AUTH (16). This intentionally allows
-        // signature-level permissions to be granted despite a certificate mismatch.
+        // Keep the digest bypass separate from the shared-UID bypass. In particular,
+        // SHARED_USER_ID (2) must never be bypassed by the digest switch alone.
         val checkCapabilityMethod = signingDetailsClazz.getDeclaredMethod(
             "checkCapability", signingDetailsClazz, Int::class.java
         )
         hookBefore(checkCapabilityMethod) { callback ->
-            if (Config.isBypassDigestEnabled() && Config.isBypassSharedUserEnabled()) {
-                callback.returnAndSkip(true)
+            if (!Config.isBypassDigestEnabled()) return@hookBefore
+            val capability = callback.args[1] as? Int ?: return@hookBefore
+            if (capability == 4 || capability == 16) return@hookBefore
+
+            if (capability == 2) {
+                val inSharedUserVerification = Arrays.stream(
+                    Thread.currentThread().stackTrace
+                ).anyMatch { it.methodName == "verifySignatures" }
+                if (Config.isBypassSharedUserEnabled() && inSharedUserVerification) {
+                    callback.returnAndSkip(true)
+                }
+                return@hookBefore
             }
+            callback.returnAndSkip(true)
         }
 
-        // Recovery path used by package signature reconciliation.
         val checkCapabilityRecoverMethod = signingDetailsClazz.getDeclaredMethod(
             "checkCapabilityRecover", signingDetailsClazz, Int::class.java
         )
         hookBefore(checkCapabilityRecoverMethod) { callback ->
-            if (Config.isBypassDigestEnabled() && Config.isBypassSharedUserEnabled()) {
-                callback.returnAndSkip(true)
+            if (!Config.isBypassDigestEnabled()) return@hookBefore
+            val capability = callback.args[1] as? Int ?: return@hookBefore
+            if (capability == 4 || capability == 16) return@hookBefore
+
+            if (capability == 2) {
+                val inSharedUserVerification = Arrays.stream(
+                    Thread.currentThread().stackTrace
+                ).anyMatch { it.methodName == "verifySignatures" }
+                if (Config.isBypassSharedUserEnabled() && inSharedUserVerification) {
+                    callback.returnAndSkip(true)
+                }
+                return@hookBefore
             }
+            callback.returnAndSkip(true)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Shared-user lineage validation in PackageManagerServiceUtils.
             val hasCommonAncestorMethod = signingDetailsClazz.getDeclaredMethod(
                 "hasCommonAncestor", signingDetailsClazz
             )
