@@ -27,4 +27,4 @@ object InstallPackageHelperHook : BaseHook() {
             callback.result = true
         }
     }
-undefined}
+}
