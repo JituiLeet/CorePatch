@@ -19,25 +19,24 @@ object SigningDetailsHook : BaseHook() {
                 hostClassLoader.loadClass("android.content.pm.PackageParser\$SigningDetails")
             }
 
-        // Bypass every signing capability while digest/signature bypass is enabled.
-        // This intentionally includes PERMISSION (4) and AUTH (16), so packages
-        // using a mismatched shared UID can receive signature-level permissions.
-        // Android 9-12 use PackageParser.SigningDetails; Android 13+ use SigningDetails.
+        // When shared-user signature bypass is enabled, accept every capability,
+        // including PERMISSION (4) and AUTH (16). This intentionally allows
+        // signature-level permissions to be granted despite a certificate mismatch.
         val checkCapabilityMethod = signingDetailsClazz.getDeclaredMethod(
             "checkCapability", signingDetailsClazz, Int::class.java
         )
         hookBefore(checkCapabilityMethod) { callback ->
-            if (Config.isBypassDigestEnabled()) {
+            if (Config.isBypassDigestEnabled() && Config.isBypassSharedUserEnabled()) {
                 callback.returnAndSkip(true)
             }
         }
 
-        // Older Package Manager paths may use checkCapabilityRecover instead.
+        // Recovery path used by package signature reconciliation.
         val checkCapabilityRecoverMethod = signingDetailsClazz.getDeclaredMethod(
             "checkCapabilityRecover", signingDetailsClazz, Int::class.java
         )
         hookBefore(checkCapabilityRecoverMethod) { callback ->
-            if (Config.isBypassDigestEnabled()) {
+            if (Config.isBypassDigestEnabled() && Config.isBypassSharedUserEnabled()) {
                 callback.returnAndSkip(true)
             }
         }
@@ -49,7 +48,6 @@ object SigningDetailsHook : BaseHook() {
             )
             hookBefore(hasCommonAncestorMethod) { callback ->
                 if (Config.isBypassDigestEnabled() && Config.isBypassSharedUserEnabled()
-                    // LSPosed cannot safely hook verifySignatures while it is deoptimized.
                     && Arrays.stream(Thread.currentThread().stackTrace)
                         .anyMatch { it.methodName == "verifySignatures" }
                 ) {
