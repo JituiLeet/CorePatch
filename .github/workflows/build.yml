@@ -26,18 +26,19 @@ jobs:
           java-version: '21'
           cache: gradle
 
-      - name: Set up Android SDK
+      - name: Set up Android SDK tools
         uses: android-actions/setup-android@v3
         with:
-          packages: platform-tools platforms;android-37
+          packages: platform-tools
+
+      - name: Install Android 37 preview platform
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager --channel=3 "platforms;android-37"
+          test -d "$ANDROID_HOME/platforms/android-37"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-
-      - name: Verify Android SDK packages
-        run: |
-          sdkmanager --list_installed
-          test -d "$ANDROID_HOME/platforms/android-37"
 
       - name: Build debug and release APKs
         run: ./gradlew --no-daemon --stacktrace :app:assembleDebug :app:assembleRelease
