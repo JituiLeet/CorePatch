@@ -5,6 +5,7 @@ import android.os.Build
 import org.lsposed.corepatch.Config
 import org.lsposed.corepatch.XposedHelper
 import org.lsposed.corepatch.XposedHelper.hostClassLoader
+import org.lsposed.corepatch.XposedHelper.hookAfter
 import org.lsposed.corepatch.XposedHelper.hookBefore
 import org.lsposed.corepatch.XposedHelper.log
 import org.lsposed.corepatch.XposedHelper.setStaticBoolean
@@ -47,6 +48,11 @@ object ReconcilePackageUtilsHook : BaseHook() {
                     allowNonPreloadsField,
                     bypassSharedUser || originalAllowNonPreloads
                 )
+            }
+            // Restore the framework's original policy immediately after reconciliation.
+            // This avoids leaving a process-wide static-final override active between installs.
+            hookAfter(reconcilePackagesMethod) {
+                setStaticBoolean(allowNonPreloadsField, originalAllowNonPreloads)
             }
         }
     }
