@@ -105,9 +105,10 @@ object PackageManagerServiceHook : BaseHook() {
                     it.name == "getProtectionLevel" && it.parameterCount == 0
                 }?.invoke(permission) as? Int
         }.getOrNull() ?: return false
-        // PROTECTION_SIGNATURE is 2. Requiring the exact base level deliberately
-        // preserves SYSTEM, DEVELOPMENT, PRIVILEGED, OEM and other special grants.
-        return protectionLevel == 2
+        // PROTECTION_MASK_BASE is 0x0f and PROTECTION_SIGNATURE is 2.
+        // Include signature permissions with additional protection flags as requested;
+        // the same-SharedUserSetting check above remains the strict scope boundary.
+        return protectionLevel and 0x0f == 2
     }
 
     private fun readSharedUser(packageSetting: Any): Any? {
