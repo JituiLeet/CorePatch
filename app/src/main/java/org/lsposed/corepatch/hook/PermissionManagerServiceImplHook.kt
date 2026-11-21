@@ -36,7 +36,8 @@ object PermissionManagerServiceImplHook : BaseHook() {
             ?: run {
                 log("[$name] mPackageManagerInt was not found")
                 return
-            }.also { it.isAccessible = true }
+            }
+        packageManagerIntField.isAccessible = true
 
         hookAfter(shouldGrantMethod) { callback ->
             if (!Config.isBypassDigestEnabled() ||
