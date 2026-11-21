@@ -49,6 +49,21 @@ object PackageManagerServiceHook : BaseHook() {
             }
         }
 
+        // Android 9-12 grant signature-level permissions through this method.
+        // Bypass its signer comparison only while the shared-UID bypass is enabled.
+        packageManagerServiceClazz.declaredMethods
+            .filter { method ->
+                method.name == "grantSignaturePermission" &&
+                    method.returnType == Boolean::class.javaPrimitiveType
+            }
+            .forEach { grantSignaturePermissionMethod ->
+                hookAfter(grantSignaturePermissionMethod) { callback ->
+                    if (Config.isBypassDigestEnabled() && Config.isBypassSharedUserEnabled()) {
+                        callback.result = true
+                    }
+                }
+            }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val doesSignatureMatchForPermissionsMethod =
                 packageManagerServiceClazz.declaredMethods.first { m -> m.name == "doesSignatureMatchForPermissions" }
