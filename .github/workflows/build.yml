@@ -34,7 +34,7 @@ jobs:
       - name: Install Android 37 preview platform
         run: |
           yes | sdkmanager --licenses
-          sdkmanager --channel=3 "platforms;android-37"
+          sdkmanager --channel=3 "platforms;android-CinnamonBun"
           test -d "$ANDROID_HOME/platforms/android-37"
 
       - name: Set up Gradle
