@@ -86,9 +86,10 @@ object PermissionManagerServiceImplHook : BaseHook() {
             ?: readIntField(permission, "protectionLevel")
             ?: readIntField(permission, "mProtectionLevel")
             ?: return false
-        // Exact PROTECTION_SIGNATURE (2) only. Keep privileged, system, OEM,
-        // development and other protection-flag permissions on the framework path.
-        return protectionLevel == 2
+        // PROTECTION_MASK_BASE is 0x0f and PROTECTION_SIGNATURE is 2.
+        // Include signature permissions carrying additional protection flags too;
+        // the same shared-user appId comparison is the strict scope boundary.
+        return protectionLevel and 0x0f == 2
     }
 
     private fun invokeString(instance: Any, name: String): String? =
