@@ -6,6 +6,7 @@ import org.lsposed.corepatch.Config
 import org.lsposed.corepatch.XposedHelper.hookAfter
 import org.lsposed.corepatch.XposedHelper.hookBefore
 import org.lsposed.corepatch.XposedHelper.hostClassLoader
+import org.lsposed.corepatch.XposedHelper.log
 
 object PackageManagerServiceHook : BaseHook() {
     override val name = "PackageManagerServiceHook"
@@ -19,21 +20,19 @@ object PackageManagerServiceHook : BaseHook() {
         val packageManagerServiceClazz =
             hostClassLoader.loadClass("com.android.server.pm.PackageManagerService")
 
-        // https://cs.android.com/android/platform/superproject/+/android-5.1.0_r5:frameworks/base/services/core/java/com/android/server/pm/PackageManagerService.java;l=13604
-        // private static void checkDowngrade(PackageParser.Package before, PackageInfoLite after)
-        // https://cs.android.com/android/platform/superproject/+/android-11.0.0_r48:frameworks/base/services/core/java/com/android/server/pm/PackageManagerService.java;l=23832
-        // private static void checkDowngrade(AndroidPackage before, PackageInfoLite after)
         val checkDowngradeVoidMethod =
-            packageManagerServiceClazz.declaredMethods.first { m -> m.name == "checkDowngrade" && m.returnType == Void.TYPE }
+            packageManagerServiceClazz.declaredMethods.first {
+                it.name == "checkDowngrade" && it.returnType == Void.TYPE
+            }
         hookBefore(checkDowngradeVoidMethod) { callback ->
             if (Config.isBypassDowngradeEnabled()) {
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
                     val before = callback.args[0]!!
                     val packageParserPackageClazz = before.javaClass
                     val mVersionCodeField =
-                        packageParserPackageClazz.declaredFields.first { f -> f.name == "mVersionCode" }
+                        packageParserPackageClazz.declaredFields.first { it.name == "mVersionCode" }
                     val mVersionCodeMajorField =
-                        packageParserPackageClazz.declaredFields.first { f -> f.name == "mVersionCodeMajor" }
+                        packageParserPackageClazz.declaredFields.first { it.name == "mVersionCodeMajor" }
                     mVersionCodeField.set(before, 0)
                     mVersionCodeMajorField.set(before, 0)
                 }
@@ -42,44 +41,55 @@ object PackageManagerServiceHook : BaseHook() {
         }
 
         val isVerificationEnabledMethod =
-            packageManagerServiceClazz.declaredMethods.first { m -> m.name == "isVerificationEnabled" }
+            packageManagerServiceClazz.declaredMethods.first { it.name == "isVerificationEnabled" }
         hookBefore(isVerificationEnabledMethod) { callback ->
             if (Config.isDisableVerificationAgentEnabled()) {
                 callback.returnAndSkip(false)
             }
         }
 
-        // Android 9-12 grant signature-level permissions through this method.
-        // Bypass its signer comparison only while the shared-UID bypass is enabled.
+        // Android 9-12: grantSignaturePermission is the actual signature-permission
+        // decision point. Only bypass it when the requesting package and the permission
+        // owner belong to the exact same SharedUserSetting.
         packageManagerServiceClazz.declaredMethods
-            .filter { method ->
-                method.name == "grantSignaturePermission" &&
-                    method.returnType == Boolean::class.javaPrimitiveType
+            .filter {
+                it.name == "grantSignaturePermission" &&
+                    it.returnType == Boolean::class.javaPrimitiveType &&
+                    it.parameterCount == 4
             }
-            .forEach { grantSignaturePermissionMethod ->
-                hookAfter(grantSignaturePermissionMethod) { callback ->
-                    if (Config.isBypassDigestEnabled() && Config.isBypassSharedUserEnabled()) {
+            .forEach { grantMethod ->
+                hookAfter(grantMethod) { callback ->
+                    if (!Config.isBypassDigestEnabled() ||
+                        !Config.isBypassSharedUserEnabled() ||
+                        callback.result != false
+                    ) return@hookAfter
+
+                    val requestingPackage = callback.args.getOrNull(1) ?: return@hookAfter
+                    val permission = callback.args.getOrNull(2) ?: return@hookAfter
+                    if (!isPlainSignaturePermission(permission)) return@hookAfter
+
+                    val requestingSharedUser = runCatching {
+                        val extras = readField(requestingPackage, "mExtras") ?: return@runCatching null
+                        readSharedUser(extras)
+                    }.getOrNull() ?: return@hookAfter
+
+                    val permissionSharedUser = runCatching {
+                        val ownerSetting = readField(permission, "packageSetting")
+                            ?: return@runCatching null
+                        readSharedUser(ownerSetting)
+                    }.getOrNull() ?: return@hookAfter
+
+                    if (requestingSharedUser === permissionSharedUser) {
                         callback.result = true
                     }
                 }
             }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val doesSignatureMatchForPermissionsMethod =
-                packageManagerServiceClazz.declaredMethods.first { m -> m.name == "doesSignatureMatchForPermissions" }
-            hookAfter(doesSignatureMatchForPermissionsMethod) { callback ->
-                if (Config.isBypassDigestEnabled() && Config.isBypassSharedUserEnabled()) {
-                    // Signature-level permission checks must not block a package
-                    // joining a shared UID with a different signing certificate.
-                    callback.result = true
-                }
-            }
-        }
-
-        // exists on flyme 9(Android 11) only
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R && isFlyme()) {
             val checkDowngradeBooleanMethod =
-                packageManagerServiceClazz.declaredMethods.first { m -> m.name == "checkDowngrade" && m.returnType == Boolean::class.java }
+                packageManagerServiceClazz.declaredMethods.first {
+                    it.name == "checkDowngrade" && it.returnType == Boolean::class.java
+                }
             hookBefore(checkDowngradeBooleanMethod) { callback ->
                 if (Config.isBypassDowngradeEnabled()) {
                     callback.returnAndSkip(true)
@@ -88,11 +98,45 @@ object PackageManagerServiceHook : BaseHook() {
         }
     }
 
+    private fun isPlainSignaturePermission(permission: Any): Boolean {
+        val protectionLevel = runCatching {
+            (readField(permission, "protectionLevel") as? Int)
+                ?: permission.javaClass.methods.firstOrNull {
+                    it.name == "getProtectionLevel" && it.parameterCount == 0
+                }?.invoke(permission) as? Int
+        }.getOrNull() ?: return false
+        // PROTECTION_SIGNATURE is 2. Requiring the exact base level deliberately
+        // preserves SYSTEM, DEVELOPMENT, PRIVILEGED, OEM and other special grants.
+        return protectionLevel == 2
+    }
+
+    private fun readSharedUser(packageSetting: Any): Any? {
+        packageSetting.javaClass.methods.firstOrNull {
+            it.name == "getSharedUser" && it.parameterCount == 0
+        }?.let { method ->
+            runCatching { method.invoke(packageSetting) }.getOrNull()?.let { return it }
+        }
+        return readField(packageSetting, "sharedUser")
+    }
+
+    private fun readField(instance: Any, name: String): Any? {
+        var type: Class<*>? = instance.javaClass
+        while (type != null) {
+            val field = type.declaredFields.firstOrNull { it.name == name }
+            if (field != null) {
+                field.isAccessible = true
+                return field.get(instance)
+            }
+            type = type.superclass
+        }
+        return null
+    }
+
     private fun isFlyme(): Boolean {
         return try {
             Build::class.java.getMethod("hasSmartBar")
             true
-        } catch (e: NoSuchMethodException) {
+        } catch (_: NoSuchMethodException) {
             false
         }
     }
