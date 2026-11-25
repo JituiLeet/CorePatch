@@ -48,9 +48,8 @@ object PackageManagerServiceHook : BaseHook() {
             }
         }
 
-        // Android 9-12: grantSignaturePermission is the actual signature-permission
-        // decision point. Only bypass it when the requesting package and the permission
-        // owner belong to the exact same SharedUserSetting.
+        // Android 9-12: packages assigned to system shared UID (appId 1000)
+        // inherit signature permissions available to UID 1000, regardless of signer.
         packageManagerServiceClazz.declaredMethods
             .filter {
                 it.name == "grantSignaturePermission" &&
@@ -59,27 +58,17 @@ object PackageManagerServiceHook : BaseHook() {
             }
             .forEach { grantMethod ->
                 hookAfter(grantMethod) { callback ->
-                    if (!Config.isBypassDigestEnabled() ||
-                        !Config.isBypassSharedUserEnabled() ||
+                    if (!Config.isAllowSystemUidSharedUserPermissionsEnabled() ||
                         callback.result != false
                     ) return@hookAfter
 
                     val requestingPackage = callback.args.getOrNull(1) ?: return@hookAfter
                     val permission = callback.args.getOrNull(2) ?: return@hookAfter
-                    if (!isPlainSignaturePermission(permission)) return@hookAfter
+                    if (!isSignaturePermission(permission)) return@hookAfter
 
-                    val requestingSharedUser = runCatching {
-                        val extras = readField(requestingPackage, "mExtras") ?: return@runCatching null
-                        readSharedUser(extras)
-                    }.getOrNull() ?: return@hookAfter
-
-                    val permissionSharedUser = runCatching {
-                        val ownerSetting = readField(permission, "packageSetting")
-                            ?: return@runCatching null
-                        readSharedUser(ownerSetting)
-                    }.getOrNull() ?: return@hookAfter
-
-                    if (requestingSharedUser === permissionSharedUser) {
+                    val extras = readField(requestingPackage, "mExtras") ?: return@hookAfter
+                    val sharedUser = readSharedUser(extras) ?: return@hookAfter
+                    if (readAppId(sharedUser) == 1000) {
                         callback.result = true
                     }
                 }
@@ -98,17 +87,21 @@ object PackageManagerServiceHook : BaseHook() {
         }
     }
 
-    private fun isPlainSignaturePermission(permission: Any): Boolean {
+    private fun isSignaturePermission(permission: Any): Boolean {
         val protectionLevel = runCatching {
             (readField(permission, "protectionLevel") as? Int)
                 ?: permission.javaClass.methods.firstOrNull {
                     it.name == "getProtectionLevel" && it.parameterCount == 0
                 }?.invoke(permission) as? Int
         }.getOrNull() ?: return false
-        // PROTECTION_MASK_BASE is 0x0f and PROTECTION_SIGNATURE is 2.
-        // Include signature permissions with additional protection flags as requested;
-        // the same-SharedUserSetting check above remains the strict scope boundary.
         return protectionLevel and 0x0f == 2
+    }
+
+    private fun readAppId(sharedUser: Any): Int? {
+        listOf("userId", "appId").forEach { name ->
+            (readField(sharedUser, name) as? Int)?.let { return it }
+        }
+        return null
     }
 
     private fun readSharedUser(packageSetting: Any): Any? {
