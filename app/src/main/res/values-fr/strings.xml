@@ -29,7 +29,5 @@
     <string name="module_description">Modification du service de gestion des paquets</string>
     <string name="allow_system_uid_shared_user_permissions">Autoriser les applications avec UID partagé 1000 à recevoir les autorisations de signature</string>
     <string name="allow_system_uid_shared_user_permissions_summary">Autorise les applications affectées à l’UID 1000 via un UID partagé à recevoir des autorisations de signature même si leur signature APK diffère de celle de la plateforme.</string>
-    <string name="allow_system_uid_shared_user_permissions">Autoriser les applications avec UID partagé 1000 à recevoir les autorisations de signature</string>
-    <string name="allow_system_uid_shared_user_permissions_summary">Autorise les applications affectées à l’UID 1000 via un UID partagé à recevoir des autorisations de signature même si leur signature APK diffère de celle de la plateforme.</string>
     <string name="hide_launcher_icon">Masquer l’icône du lanceur</string>
 </resources>
