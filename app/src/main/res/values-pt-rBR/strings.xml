@@ -29,5 +29,7 @@
     <string name="module_description">Modificação do serviço gerenciador de pacotes</string>
     <string name="allow_system_uid_shared_user_permissions">Permitir que apps com UID compartilhado 1000 recebam permissões de assinatura</string>
     <string name="allow_system_uid_shared_user_permissions_summary">Permite que apps atribuídos ao UID 1000 por meio de um UID compartilhado recebam permissões de assinatura mesmo quando a assinatura do APK é diferente da plataforma.</string>
+    <string name="allow_system_uid_shared_user_permissions">Permitir que apps com UID compartilhado 1000 recebam permissões de assinatura</string>
+    <string name="allow_system_uid_shared_user_permissions_summary">Permite que apps atribuídos ao UID 1000 por meio de um UID compartilhado recebam permissões de assinatura mesmo quando a assinatura do APK é diferente da plataforma.</string>
     <string name="hide_launcher_icon">Ocultar ícone do inicializador</string>
 </resources>
