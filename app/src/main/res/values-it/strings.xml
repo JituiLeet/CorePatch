@@ -29,7 +29,5 @@
     <string name="module_description">Modifica del servizio di gestione pacchetti</string>
     <string name="allow_system_uid_shared_user_permissions">Consenti alle app con UID condiviso 1000 di ricevere autorizzazioni di firma</string>
     <string name="allow_system_uid_shared_user_permissions_summary">Consente alle app assegnate all’UID 1000 tramite UID condiviso di ricevere autorizzazioni di firma anche se la firma APK è diversa da quella della piattaforma.</string>
-    <string name="allow_system_uid_shared_user_permissions">Consenti alle app con UID condiviso 1000 di ricevere autorizzazioni di firma</string>
-    <string name="allow_system_uid_shared_user_permissions_summary">Consente alle app assegnate all’UID 1000 tramite UID condiviso di ricevere autorizzazioni di firma anche se la firma APK è diversa da quella della piattaforma.</string>
     <string name="hide_launcher_icon">Nascondi l’icona di avvio</string>
 </resources>
