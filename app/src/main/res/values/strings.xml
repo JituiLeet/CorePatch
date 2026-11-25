@@ -31,7 +31,5 @@
     <string name="bypass_block_summary">Bypass blocklists on devices such as Nothing Phone.</string>
     <string name="allow_system_uid_shared_user_permissions">Allow system shared-UID apps to receive signature permissions</string>
     <string name="allow_system_uid_shared_user_permissions_summary">Allow apps assigned to UID 1000 through a shared UID to receive signature permissions even when their APK signature differs from the platform.</string>
-    <string name="allow_system_uid_shared_user_permissions">Allow system shared-UID apps to receive signature permissions</string>
-    <string name="allow_system_uid_shared_user_permissions_summary">Allow apps assigned to UID 1000 through a shared UID to receive signature permissions even when their APK signature differs from the platform.</string>
     <string name="hide_launcher_icon">Hide launcher icon</string>
 </resources>
