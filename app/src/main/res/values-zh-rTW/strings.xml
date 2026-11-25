@@ -29,5 +29,7 @@
     <string name="module_description">套件管理服務修改</string>
     <string name="allow_system_uid_shared_user_permissions">允許共用 UID 1000 的應用程式取得簽章權限</string>
     <string name="allow_system_uid_shared_user_permissions_summary">允許宣告共用 UID 並被分配至 UID 1000 的應用程式，在 APK 簽章與系統不一致時仍取得簽章層級權限。</string>
+    <string name="allow_system_uid_shared_user_permissions">允許共用 UID 1000 的應用程式取得簽章權限</string>
+    <string name="allow_system_uid_shared_user_permissions_summary">允許宣告共用 UID 並被分配至 UID 1000 的應用程式，在 APK 簽章與系統不一致時仍取得簽章層級權限。</string>
     <string name="hide_launcher_icon">隱藏啟動器圖示</string>
 </resources>
