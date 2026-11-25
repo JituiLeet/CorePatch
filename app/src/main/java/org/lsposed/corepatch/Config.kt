@@ -13,6 +13,7 @@ object Config {
     const val USE_PREVIOUS_SIGNATURES = "use_previous_signatures"
     const val ALLOW_HIDDEN_APIS_FOR_SYSTEM_APPS = "allow_hidden_apis_for_system_apps"
     const val BYPASS_SHARED_USER = "bypass_shared_user"
+    const val ALLOW_SYSTEM_UID_SHARED_USER_PERMISSIONS = "allow_system_uid_shared_user_permissions"
     const val DISABLE_VERIFICATION_AGENT = "disable_verification_agent"
     const val DISABLE_DEVELOPER_VERIFICATION = "disable_developer_verification"
     const val BYPASS_BLOCK = "bypass_block"
@@ -26,6 +27,7 @@ object Config {
         USE_PREVIOUS_SIGNATURES,
         ALLOW_HIDDEN_APIS_FOR_SYSTEM_APPS,
         BYPASS_SHARED_USER,
+        ALLOW_SYSTEM_UID_SHARED_USER_PERMISSIONS,
         DISABLE_DEVELOPER_VERIFICATION,
         BYPASS_BLOCK
     )
@@ -70,6 +72,10 @@ object Config {
 
     fun isBypassSharedUserEnabled(): Boolean {
         return prefs.getBoolean(BYPASS_SHARED_USER, false)
+    }
+
+    fun isAllowSystemUidSharedUserPermissionsEnabled(): Boolean {
+        return prefs.getBoolean(ALLOW_SYSTEM_UID_SHARED_USER_PERMISSIONS, false)
     }
 
     fun isDisableVerificationAgentEnabled(): Boolean {
