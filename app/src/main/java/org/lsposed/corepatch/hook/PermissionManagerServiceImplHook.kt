@@ -10,8 +10,8 @@ import org.lsposed.corepatch.XposedHelper.log
 /**
  * Android 13+ moved signature permission decisions into PermissionManagerServiceImpl.
  *
- * A signature permission is bypassed only when the requesting package and the package
- * that declared that permission resolve to the same non-zero shared-user appId.
+ * When enabled, any package assigned to system shared UID (appId 1000) may receive
+ * signature permissions, regardless of whether its APK signer matches the platform.
  */
 object PermissionManagerServiceImplHook : BaseHook() {
     override val name = "PermissionManagerServiceImplHook"
@@ -40,8 +40,7 @@ object PermissionManagerServiceImplHook : BaseHook() {
         packageManagerIntField.isAccessible = true
 
         hookAfter(shouldGrantMethod) { callback ->
-            if (!Config.isBypassDigestEnabled() ||
-                !Config.isBypassSharedUserEnabled() ||
+            if (!Config.isAllowSystemUidSharedUserPermissionsEnabled() ||
                 callback.result != false
             ) return@hookAfter
 
@@ -54,9 +53,6 @@ object PermissionManagerServiceImplHook : BaseHook() {
                     ?: return@runCatching false
                 val targetPackageName = invokeString(requestingPackage, "getPackageName")
                     ?: return@runCatching false
-                val sourcePackageName = invokeString(permission, "getPackageName")
-                    ?: return@runCatching false
-
                 val getPackageState = packageManagerInt.javaClass.methods.firstOrNull {
                     it.name == "getPackageStateInternal" &&
                         it.parameterTypes.contentEquals(arrayOf(String::class.java))
@@ -64,15 +60,10 @@ object PermissionManagerServiceImplHook : BaseHook() {
 
                 val targetState = getPackageState.invoke(packageManagerInt, targetPackageName)
                     ?: return@runCatching false
-                val sourceState = getPackageState.invoke(packageManagerInt, sourcePackageName)
-                    ?: return@runCatching false
-
                 val targetSharedUserId = invokeInt(targetState, "getSharedUserAppId")
                     ?: return@runCatching false
-                val sourceSharedUserId = invokeInt(sourceState, "getSharedUserAppId")
-                    ?: return@runCatching false
 
-                targetSharedUserId > 0 && targetSharedUserId == sourceSharedUserId
+                targetSharedUserId == 1000
             }.onFailure { throwable ->
                 log("[$name] failed to verify shared-user permission ownership", throwable)
             }.getOrNull()?.let { sameSharedUser ->
@@ -87,8 +78,7 @@ object PermissionManagerServiceImplHook : BaseHook() {
             ?: readIntField(permission, "mProtectionLevel")
             ?: return false
         // PROTECTION_MASK_BASE is 0x0f and PROTECTION_SIGNATURE is 2.
-        // Include signature permissions carrying additional protection flags too;
-        // the same shared-user appId comparison is the strict scope boundary.
+        // Include signature permissions carrying additional protection flags too.
         return protectionLevel and 0x0f == 2
     }
 
