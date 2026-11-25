@@ -29,5 +29,7 @@
     <string name="bypass_block">绕过黑名单</string>
     <string name="bypass_block_summary">绕过某些设备如 Nothing Phone 上的黑名单</string>
     <string name="module_description">软件包管理服务修改</string>
+    <string name="allow_system_uid_shared_user_permissions">允许共享 UID 1000 的应用获取签名权限</string>
+    <string name="allow_system_uid_shared_user_permissions_summary">允许声明共享 UID 并被分配到 UID 1000 的应用，在 APK 签名与系统不一致时仍获取签名级权限。</string>
     <string name="hide_launcher_icon">隐藏桌面图标</string>
 </resources>
