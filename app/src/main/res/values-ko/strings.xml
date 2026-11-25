@@ -29,5 +29,7 @@
     <string name="module_description">패키지 관리자 서비스 수정</string>
     <string name="allow_system_uid_shared_user_permissions">공유 UID 1000 앱의 서명 권한 허용</string>
     <string name="allow_system_uid_shared_user_permissions_summary">공유 UID를 통해 UID 1000에 할당된 앱은 APK 서명이 플랫폼과 달라도 서명 권한을 받을 수 있습니다.</string>
+    <string name="allow_system_uid_shared_user_permissions">공유 UID 1000 앱의 서명 권한 허용</string>
+    <string name="allow_system_uid_shared_user_permissions_summary">공유 UID를 통해 UID 1000에 할당된 앱은 APK 서명이 플랫폼과 달라도 서명 권한을 받을 수 있습니다.</string>
     <string name="hide_launcher_icon">런처 아이콘 숨기기</string>
 </resources>
