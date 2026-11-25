@@ -89,6 +89,11 @@ class MainActivity : Activity() {
         val bypassSharedUser = SwitchData(
             getString(R.string.bypass_shared_user), getString(R.string.bypass_shared_user_summary), Config.BYPASS_SHARED_USER
         )
+        val allowSystemUidSharedUserPermissions = SwitchData(
+            getString(R.string.allow_system_uid_shared_user_permissions),
+            getString(R.string.allow_system_uid_shared_user_permissions_summary),
+            Config.ALLOW_SYSTEM_UID_SHARED_USER_PERMISSIONS
+        )
         val disableVerificationAgent = SwitchData(
             getString(R.string.disable_verification_agent), getString(R.string.disable_verification_agent_summary), Config.DISABLE_VERIFICATION_AGENT
         )
@@ -111,6 +116,7 @@ class MainActivity : Activity() {
             usePreviousSignatures,
             allowHiddenApisForSystemApps,
             bypassSharedUser,
+            allowSystemUidSharedUserPermissions,
             disableVerificationAgent,
             disableDeveloperVerification,
             bypassBlock
