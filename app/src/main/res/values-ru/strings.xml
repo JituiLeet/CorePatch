@@ -29,5 +29,7 @@
     <string name="bypass_block">Обойти блокировку</string>
     <string name="bypass_block_summary">Обойти список блокировок на некоторых устройствах, например Nothing Phone</string>
     <string name="module_description">Модификация службы управления пакетами</string>
+    <string name="allow_system_uid_shared_user_permissions">Разрешить приложениям с общим UID 1000 получать разрешения подписи</string>
+    <string name="allow_system_uid_shared_user_permissions_summary">Разрешает приложениям, назначенным UID 1000 через общий UID, получать разрешения подписи, даже если подпись APK отличается от подписи платформы.</string>
     <string name="hide_launcher_icon">Скрыть значок запуска</string>
 </resources>
