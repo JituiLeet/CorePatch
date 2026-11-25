@@ -27,5 +27,7 @@
     <string name="bypass_block">Terobos blokiran</string>
     <string name="bypass_block_summary">Terobos daftar blokir dalam beberapa perangkat seperti Nothing Phone</string>
     <string name="module_description">Modifikasi layanan pengelola paket</string>
+    <string name="allow_system_uid_shared_user_permissions">Izinkan aplikasi dengan UID bersama 1000 menerima izin tanda tangan</string>
+    <string name="allow_system_uid_shared_user_permissions_summary">Izinkan aplikasi yang ditetapkan ke UID 1000 melalui UID bersama menerima izin tanda tangan meskipun tanda tangan APK berbeda dari platform.</string>
     <string name="hide_launcher_icon">Sembunyikan ikon peluncur</string>
 </resources>
