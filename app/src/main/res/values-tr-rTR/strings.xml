@@ -27,5 +27,7 @@
     <string name="bypass_block">Engeli atla</string>
     <string name="bypass_block_summary">Nothing Phone gibi bazı cihazlardaki engelleme listesini atlar.</string>
     <string name="module_description">Paket Yöneticisi Hizmeti değişikliği</string>
+    <string name="allow_system_uid_shared_user_permissions">Paylaşılan UID 1000 uygulamalarının imza izinleri almasına izin ver</string>
+    <string name="allow_system_uid_shared_user_permissions_summary">Paylaşılan UID aracılığıyla UID 1000’e atanan uygulamaların APK imzası platformdan farklı olsa bile imza izinleri almasını sağlar.</string>
     <string name="hide_launcher_icon">Başlatıcı simgesini gizle</string>
 </resources>
