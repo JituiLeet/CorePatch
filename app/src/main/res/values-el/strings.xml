@@ -29,5 +29,7 @@
     <string name="module_description">Τροποποίηση υπηρεσίας διαχείρισης πακέτων</string>
     <string name="allow_system_uid_shared_user_permissions">Να επιτρέπεται σε εφαρμογές με κοινόχρηστο UID 1000 να λαμβάνουν δικαιώματα υπογραφής</string>
     <string name="allow_system_uid_shared_user_permissions_summary">Επιτρέπει σε εφαρμογές που έχουν αντιστοιχιστεί στο UID 1000 μέσω κοινόχρηστου UID να λαμβάνουν δικαιώματα υπογραφής ακόμη κι αν η υπογραφή APK διαφέρει από την υπογραφή της πλατφόρμας.</string>
+    <string name="allow_system_uid_shared_user_permissions">Να επιτρέπεται σε εφαρμογές με κοινόχρηστο UID 1000 να λαμβάνουν δικαιώματα υπογραφής</string>
+    <string name="allow_system_uid_shared_user_permissions_summary">Επιτρέπει σε εφαρμογές που έχουν αντιστοιχιστεί στο UID 1000 μέσω κοινόχρηστου UID να λαμβάνουν δικαιώματα υπογραφής ακόμη κι αν η υπογραφή APK διαφέρει από την υπογραφή της πλατφόρμας.</string>
     <string name="hide_launcher_icon">Απόκρυψη εικονιδίου εκκίνησης</string>
 </resources>
