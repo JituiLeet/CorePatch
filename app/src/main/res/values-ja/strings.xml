@@ -27,5 +27,7 @@
     <string name="bypass_block">ブロックをバイパスする</string>
     <string name="bypass_block_summary">Nothing Phone などの一部のデバイスのブロックリストをバイパスします。</string>
     <string name="module_description">パッケージ管理サービスの変更</string>
+    <string name="allow_system_uid_shared_user_permissions">共有 UID 1000 のアプリに署名権限を許可</string>
+    <string name="allow_system_uid_shared_user_permissions_summary">共有 UID によって UID 1000 に割り当てられたアプリは、APK の署名がプラットフォームと異なっていても署名権限を取得できます。</string>
     <string name="hide_launcher_icon">ランチャーアイコンを非表示</string>
 </resources>
